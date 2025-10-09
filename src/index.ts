@@ -45,10 +45,10 @@ interface GitHubTokenResponse {
 
 const app = express();
 app.disable("x-powered-by");
+
 const PORT = process.env.PORT || 3001;
 const CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 const CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
-const TOKEN_ENDPOINT = "/v1/github/token";
 
 if (!CLIENT_ID || !CLIENT_SECRET) {
   logger.error(
@@ -63,11 +63,22 @@ if (!CLIENT_ID || !CLIENT_SECRET) {
 const collectDefaultMetrics = client.collectDefaultMetrics;
 collectDefaultMetrics();
 
-// Custom counter example (can add more as needed)
 const httpRequestCounter = new client.Counter({
   name: "http_requests_total",
   help: "Total number of HTTP requests",
   labelNames: ["method", "route", "status_code"],
+});
+
+app.use((req, res, next) => {
+  res.on("finish", () => {
+    if (req.path === "/metrics" || req.method === "OPTIONS") return; // Skip metrics endpoint to avoid recursion
+    httpRequestCounter.inc({
+      method: req.method,
+      route: req.path,
+      status_code: res.statusCode,
+    });
+  });
+  next();
 });
 
 app.use(requestIp.mw());
@@ -77,7 +88,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Configure CORS - adjust origins based on your needs
 app.use(
   cors({
     origin: process.env.ALLOWED_ORIGINS?.split(",") || "http://localhost:5173",
@@ -95,24 +105,14 @@ app.get("/metrics", async (req, res) => {
 
 // Health check endpoint
 app.get("/health", (req, res) => {
-  httpRequestCounter.inc({
-    method: req.method,
-    route: "/health",
-    status_code: 200,
-  });
   res.json({ status: "ok" });
 });
 
 // GitHub OAuth token exchange endpoint
-app.post(TOKEN_ENDPOINT, async (req, res) => {
+app.post("/v1/github/token", async (req, res) => {
   const { code, code_verifier, redirect_uri } = req.body;
 
   if (!code) {
-    httpRequestCounter.inc({
-      method: req.method,
-      route: TOKEN_ENDPOINT,
-      status_code: 400,
-    });
     return res.status(400).json({ error: "Missing code parameter" });
   }
 
@@ -122,20 +122,10 @@ app.post(TOKEN_ENDPOINT, async (req, res) => {
       const redirectUriOrigin = new URL(redirect_uri).origin;
       if (!allowedOrigins.includes(redirectUriOrigin)) {
         req.log.warn({ redirect_uri }, "Invalid redirect_uri received.");
-        httpRequestCounter.inc({
-          method: req.method,
-          route: TOKEN_ENDPOINT,
-          status_code: 400,
-        });
         return res.status(400).json({ error: "Invalid redirect_uri" });
       }
     } catch (e) {
       req.log.warn({ redirect_uri }, "Invalid redirect_uri format received.");
-      httpRequestCounter.inc({
-        method: req.method,
-        route: TOKEN_ENDPOINT,
-        status_code: 400,
-      });
       return res.status(400).json({ error: "Invalid redirect_uri format" });
     }
   }
@@ -165,7 +155,7 @@ app.post(TOKEN_ENDPOINT, async (req, res) => {
           client_secret: CLIENT_SECRET,
           code,
           code_verifier,
-          redirect_uri: redirect_uri || process.env.DEFAULT_REDIRECT_URI,
+          redirect_uri: redirect_uri,
         }),
       }
     );
@@ -181,11 +171,6 @@ app.post(TOKEN_ENDPOINT, async (req, res) => {
         },
         "GitHub OAuth error"
       );
-      httpRequestCounter.inc({
-        method: req.method,
-        route: TOKEN_ENDPOINT,
-        status_code: 400,
-      });
       return res.status(400).json({
         error: data.error,
         error_description: data.error_description,
@@ -196,19 +181,9 @@ app.post(TOKEN_ENDPOINT, async (req, res) => {
       { hasAccessToken: !!data.access_token, scope: data.scope },
       "Token exchange successful"
     );
-    httpRequestCounter.inc({
-      method: req.method,
-      route: TOKEN_ENDPOINT,
-      status_code: 200,
-    });
     res.json(data);
   } catch (error) {
     req.log.error({ error }, "Error exchanging code for token");
-    httpRequestCounter.inc({
-      method: req.method,
-      route: TOKEN_ENDPOINT,
-      status_code: 500,
-    });
     res.status(500).json({ error: "Internal server error" });
   }
 });
