@@ -1,15 +1,17 @@
 import request from "supertest";
 import { createServer } from "./server.js";
 
-beforeAll(() => {
-  process.env.GITHUB_CLIENT_ID = "test-client-id";
-  process.env.GITHUB_CLIENT_SECRET = "test-client-secret";
-  process.env.ALLOWED_ORIGINS = "http://localhost:3000";
-  process.env.DEFAULT_REDIRECT_URI = "http://localhost:3000/callback";
-});
-
 describe("Server", () => {
-  const app = createServer();
+  let app: ReturnType<typeof createServer>;
+
+  beforeAll(() => {
+    process.env.GITHUB_CLIENT_ID = "test-client-id";
+    process.env.GITHUB_CLIENT_SECRET = "test-client-secret";
+    process.env.ALLOWED_ORIGINS = "http://localhost:3000";
+    process.env.DEFAULT_REDIRECT_URI = "http://localhost:3000/callback";
+
+    app = createServer();
+  });
 
   describe("GET /health", () => {
     it("should return 200 and a message", async () => {
