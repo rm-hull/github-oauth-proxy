@@ -39,3 +39,38 @@ yarn start
 docker build -t github-oauth-proxy .
 docker run -p 3001:3001 --env-file .env github-oauth-proxy
 ```
+
+## Configuration
+
+### Environment Variables
+
+The following environment variables are used to configure the application:
+
+| Variable               | Description                                     | Default                 |
+| ---------------------- | ----------------------------------------------- | ----------------------- |
+| `PORT`                 | The port to run the application on.             | `3001`                  |
+| `LOG_LEVEL`            | The log level to use.                           | `info`                  |
+| `GITHUB_CLIENT_ID`     | The GitHub OAuth client ID.                     |                         |
+| `GITHUB_CLIENT_SECRET` | The GitHub OAuth client secret.                 |                         |
+| `ALLOWED_ORIGINS`      | A comma-separated list of allowed CORS origins. | `http://localhost:5173` |
+
+## Logging
+
+The application uses Pino for logging. In development, the logs are pretty-printed to the console. In production, the logs are formatted as JSON.
+
+Each log entry will contain a `requestId` that is unique to each request. This can be used to correlate all the logs for a single request.
+
+The log levels are as follows:
+
+- `FATAL`
+- `ERROR`
+- `WARN`
+- `INFO`
+- `DEBUG`
+- `TRACE`
+
+## Metrics
+
+The application exposes Prometheus metrics on the `/metrics` endpoint. The following metrics are available:
+
+- `http_requests_total`: The total number of HTTP requests, with labels for `method`, `route`, and `status_code`.
