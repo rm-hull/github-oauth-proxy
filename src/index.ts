@@ -71,10 +71,16 @@ const httpRequestCounter = new client.Counter({
 
 app.use((req, res, next) => {
   res.on("finish", () => {
-    if (req.path === "/metrics" || req.method === "OPTIONS") return; // Skip metrics endpoint to avoid recursion
+    // Skip metrics endpoint to avoid recursion
+    if (req.path === "/metrics" || req.method === "OPTIONS") {
+      return;
+    }
+    // Use req.route.path if available, otherwise fallback to req.path
+    // This helps to group metrics by route rather than full path with params
+    const route = req.route?.path || "unmatched_route";
     httpRequestCounter.inc({
       method: req.method,
-      route: req.path,
+      route: route,
       status_code: res.statusCode,
     });
   });
