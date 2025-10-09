@@ -31,8 +31,12 @@ jobs:
         run: yarn lint
         continue-on-error: true
 
-      # - name: Run tests
-      #   run: yarn test
+      - name: Tests
+        run: yarn test:coverage
+
+      - name: Coveralls
+        uses: coverallsapp/github-action@v2
+        continue-on-error: true
 
       - name: Build project
         run: yarn build
