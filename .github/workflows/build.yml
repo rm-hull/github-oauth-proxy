@@ -33,6 +33,11 @@ jobs:
 
       - name: Tests
         run: yarn test:coverage
+        env:
+          GITHUB_CLIENT_ID: test-client-id
+          GITHUB_CLIENT_SECRET: test-client-secret
+          ALLOWED_ORIGINS: http://localhost:3000
+          DEFAULT_REDIRECT_URI: http://localhost:3000/callback
 
       - name: Coveralls
         uses: coverallsapp/github-action@v2
