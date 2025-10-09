@@ -1,7 +1,5 @@
 # GitHub OAuth Proxy
 
-# GitHub OAuth Proxy
-
 ## Summary
 
 GitHub OAuth Proxy is a lightweight Node.js service that acts as a secure intermediary between a browser-based single page application and GitHub's OAuth authentication. It is designed specifically to support OAuth flows using PKCE (Proof Key for Code Exchange), making it ideal for SPAs and mobile apps. The proxy simplifies OAuth logic, handles token exchanges, and provides endpoints for authenticating users via GitHub, so you can integrate GitHub login without exposing secrets or handling complex OAuth and PKCE logic directly.
@@ -16,13 +14,13 @@ Content-Type: application/json
 
 {
   "code": "<github-oauth-code>",
-  "code_verifier": "<github-pkce-challenge>"
+  "code_verifier": "<github-pkce-verifier>"
 }
 ```
 
 ## Local setup
 
-```bash
+```console
 # Install dependencies
 yarn install
 
