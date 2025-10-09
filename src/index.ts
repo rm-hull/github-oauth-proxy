@@ -116,18 +116,24 @@ app.post("/v1/github/token", async (req, res) => {
     return res.status(400).json({ error: "Missing code parameter" });
   }
 
-  if (redirect_uri) {
-    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
-    try {
-      const redirectUriOrigin = new URL(redirect_uri).origin;
-      if (!allowedOrigins.includes(redirectUriOrigin)) {
-        req.log.warn({ redirect_uri }, "Invalid redirect_uri received.");
-        return res.status(400).json({ error: "Invalid redirect_uri" });
-      }
-    } catch (e) {
-      req.log.warn({ redirect_uri }, "Invalid redirect_uri format received.");
-      return res.status(400).json({ error: "Invalid redirect_uri format" });
+  if (!code_verifier) {
+    return res.status(400).json({ error: "Missing code_verifier parameter" });
+  }
+
+  if (!redirect_uri) {
+    return res.status(400).json({ error: "Missing redirect_uri parameter" });
+  }
+
+  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
+  try {
+    const redirectUriOrigin = new URL(redirect_uri).origin;
+    if (!allowedOrigins.includes(redirectUriOrigin)) {
+      req.log.warn({ redirect_uri }, "Invalid redirect_uri received.");
+      return res.status(400).json({ error: "Invalid redirect_uri" });
     }
+  } catch (e) {
+    req.log.warn({ redirect_uri }, "Invalid redirect_uri format received.");
+    return res.status(400).json({ error: "Invalid redirect_uri format" });
   }
 
   try {
@@ -178,7 +184,11 @@ app.post("/v1/github/token", async (req, res) => {
     }
 
     req.log.info(
-      { hasAccessToken: !!data.access_token, scope: data.scope },
+      {
+        hasAccessToken: !!data.access_token,
+        scope: data.scope,
+        tokenType: data.token_type,
+      },
       "Token exchange successful"
     );
     res.json(data);
