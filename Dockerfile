@@ -38,9 +38,9 @@ COPY --from=base /app/dist ./dist
 EXPOSE 3001
 
 # Health check - checks every 30s with 3s timeout, 3 retries before unhealthy
-COPY healthcheck.js ./
+COPY healthcheck.cjs ./
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node /app/healthcheck.js
+  CMD node /app/healthcheck.cjs
 
 # Create non-root user and set ownership of /app
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
