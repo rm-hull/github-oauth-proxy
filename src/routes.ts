@@ -1,6 +1,7 @@
 import { Router } from "express";
 import client from "prom-client";
 import { config } from "./config";
+import { GitHubTokenResponse } from "./types/github";
 
 export const router = Router();
 
@@ -19,16 +20,11 @@ router.get("/health", (req, res) => {
 router.post("/v1/github/token", async (req, res) => {
   const { code, code_verifier, redirect_uri } = req.body;
 
-  if (!code) {
-    return res.status(400).json({ error: "Missing code parameter" });
-  }
-
-  if (!code_verifier) {
-    return res.status(400).json({ error: "Missing code_verifier parameter" });
-  }
-
-  if (!redirect_uri) {
-    return res.status(400).json({ error: "Missing redirect_uri parameter" });
+  const requiredParams = ["code", "code_verifier", "redirect_uri"];
+  for (const param of requiredParams) {
+    if (!req.body[param]) {
+      return res.status(400).json({ error: `Missing ${param} parameter` });
+    }
   }
 
   const allowedOrigins = config.cors.allowedOrigins;
@@ -55,23 +51,20 @@ router.post("/v1/github/token", async (req, res) => {
       "Exchanging code for token"
     );
 
-    const response = await fetch(
-      "https://github.com/login/oauth/access_token",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          client_id: config.github.clientId,
-          client_secret: config.github.clientSecret,
-          code,
-          code_verifier,
-          redirect_uri,
-        }),
-      }
-    );
+    const response = await fetch("https://github.com/login/oauth/access_token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        client_id: config.github.clientId,
+        client_secret: config.github.clientSecret,
+        code,
+        code_verifier,
+        redirect_uri,
+      }),
+    });
 
     const data = (await response.json()) as GitHubTokenResponse;
 

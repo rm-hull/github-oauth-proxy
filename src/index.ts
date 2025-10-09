@@ -1,6 +1,6 @@
-import { createServer } from "./server";
 import { config } from "./config";
 import { logger } from "./logger";
+import { createServer } from "./server";
 
 const app = createServer();
 

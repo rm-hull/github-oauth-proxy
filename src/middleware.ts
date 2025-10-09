@@ -11,11 +11,7 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
   next();
 };
 
-export const metricsMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const metricsMiddleware = (req: Request, res: Response, next: NextFunction) => {
   res.on("finish", () => {
     // Skip metrics endpoint to avoid recursion
     if (req.path === "/metrics" || req.method === "OPTIONS") {

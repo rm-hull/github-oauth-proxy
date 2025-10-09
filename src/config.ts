@@ -13,9 +13,7 @@ export const config = {
     clientSecret: env.GITHUB_CLIENT_SECRET,
   },
   cors: {
-    allowedOrigins: env.ALLOWED_ORIGINS?.split(",") || [
-      "http://localhost:5173",
-    ],
+    allowedOrigins: (env.ALLOWED_ORIGINS || "http://localhost:5173").split(","),
   },
 };
 

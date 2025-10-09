@@ -1,5 +1,5 @@
-import express from "express";
 import cors from "cors";
+import express from "express";
 import { config } from "./config";
 import { collectDefaultMetrics } from "./metrics";
 import { ipMiddleware, requestLogger, metricsMiddleware } from "./middleware";
