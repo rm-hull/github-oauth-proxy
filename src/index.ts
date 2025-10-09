@@ -3,12 +3,23 @@ import client from "prom-client";
 import cors from "cors";
 import dotenv from "dotenv";
 import pino from "pino";
+import { nanoid } from "nanoid";
+import requestIp from "request-ip";
 
 dotenv.config();
+
+declare module "express-serve-static-core" {
+  interface Request {
+    log: pino.Logger;
+  }
+}
 
 // Initialize logger
 const logger = pino({
   level: process.env.LOG_LEVEL || "info",
+  formatters: {
+    level: (label) => ({ level: label.toUpperCase() }),
+  },
   transport:
     process.env.NODE_ENV === "development"
       ? {
@@ -33,7 +44,20 @@ interface GitHubTokenResponse {
 }
 
 const app = express();
+app.disable('x-powered-by');
 const PORT = process.env.PORT || 3001;
+const CLIENT_ID = process.env.GITHUB_CLIENT_ID;
+const CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
+const TOKEN_ENDPOINT = "/v1/github/token";
+
+if (!CLIENT_ID || !CLIENT_SECRET) {
+  logger.error(
+    { clientId: !!CLIENT_ID, clientSecret: !!CLIENT_SECRET },
+    "Missing GitHub OAuth credentials"
+  );
+
+  process.exit(1);
+}
 
 // Prometheus metrics setup
 const collectDefaultMetrics = client.collectDefaultMetrics;
@@ -44,6 +68,13 @@ const httpRequestCounter = new client.Counter({
   name: "http_requests_total",
   help: "Total number of HTTP requests",
   labelNames: ["method", "route", "status_code"],
+});
+
+app.use(requestIp.mw());
+
+app.use((req, res, next) => {
+  req.log = logger.child({ requestId: nanoid() });
+  next();
 });
 
 // Configure CORS - adjust origins based on your needs
@@ -73,38 +104,27 @@ app.get("/health", (req, res) => {
 });
 
 // GitHub OAuth token exchange endpoint
-app.post("/v1/github/token", async (req, res) => {
-  const { code, code_verifier } = req.body;
+app.post(TOKEN_ENDPOINT, async (req, res) => {
+  const { code, code_verifier, redirect_uri } = req.body;
 
   if (!code) {
     httpRequestCounter.inc({
       method: req.method,
-      route: "/v1/github/token",
+      route: TOKEN_ENDPOINT,
       status_code: 400,
     });
     return res.status(400).json({ error: "Missing code parameter" });
   }
 
-  const clientId = process.env.GITHUB_CLIENT_ID;
-  const clientSecret = process.env.GITHUB_CLIENT_SECRET;
-  const redirectUri = process.env.REDIRECT_URI;
-
-  if (!clientId || !clientSecret) {
-    logger.error(
-      { clientId: !!clientId, clientSecret: !!clientSecret },
-      "Missing GitHub OAuth credentials"
-    );
-    httpRequestCounter.inc({
-      method: req.method,
-      route: "/v1/github/token",
-      status_code: 500,
-    });
-    return res.status(500).json({ error: "Server configuration error" });
-  }
-
   try {
-    logger.info(
-      { clientId, hasCode: !!code, hasVerifier: !!code_verifier },
+    req.log.info(
+      {
+        clientId: CLIENT_ID,
+        redirectUri: redirect_uri,
+        hasCode: !!code,
+        hasVerifier: !!code_verifier,
+        ip: req.clientIp,
+      },
       "Exchanging code for token"
     );
 
@@ -117,11 +137,11 @@ app.post("/v1/github/token", async (req, res) => {
           Accept: "application/json",
         },
         body: JSON.stringify({
-          client_id: clientId,
-          client_secret: clientSecret,
+          client_id: CLIENT_ID,
+          client_secret: CLIENT_SECRET,
           code,
           code_verifier,
-          redirect_uri: redirectUri,
+          redirect_uri: redirect_uri || process.env.DEFAULT_REDIRECT_URI,
         }),
       }
     );
@@ -130,7 +150,7 @@ app.post("/v1/github/token", async (req, res) => {
 
     // Don't expose client credentials in error responses
     if (data.error) {
-      logger.error(
+      req.log.error(
         {
           error: data.error,
           description: data.error_description,
@@ -139,7 +159,7 @@ app.post("/v1/github/token", async (req, res) => {
       );
       httpRequestCounter.inc({
         method: req.method,
-        route: "/v1/github/token",
+        route: TOKEN_ENDPOINT,
         status_code: 400,
       });
       return res.status(400).json({
@@ -148,27 +168,36 @@ app.post("/v1/github/token", async (req, res) => {
       });
     }
 
-    logger.info(
+    req.log.info(
       { hasAccessToken: !!data.access_token, scope: data.scope },
       "Token exchange successful"
     );
     httpRequestCounter.inc({
       method: req.method,
-      route: "/v1/github/token",
+      route: TOKEN_ENDPOINT,
       status_code: 200,
     });
     res.json(data);
   } catch (error) {
-    logger.error({ error }, "Error exchanging code for token");
+    req.log.error({ error }, "Error exchanging code for token");
     httpRequestCounter.inc({
       method: req.method,
-      route: "/v1/github/token",
+      route: TOKEN_ENDPOINT,
       status_code: 500,
     });
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
-app.listen(PORT, () => {
-  logger.info({ port: PORT }, "GitHub OAuth proxy server started");
-});
+app
+  .listen(PORT, () => {
+    logger.info({ port: PORT }, "GitHub OAuth proxy server started");
+  })
+  .on("error", (err) => {
+    if ("code" in err && err.code === "EADDRINUSE") {
+      logger.error({ port: PORT }, "Port is already in use.");
+    } else {
+      logger.error({ err }, "Failed to start server");
+    }
+    process.exit(1);
+  });
