@@ -1,0 +1,19 @@
+### Test POST /test endpoint
+
+### Health Check
+GET http://localhost:3001/health
+Accept: application/json
+
+### Metrics
+GET http://localhost:3001/metrics
+Accept: text/plain
+
+### Token Exchange
+POST http://localhost:3001/v1/github/token
+Content-Type: application/json
+
+{
+  "code": "1b3db016a3bb8a317ffe",
+  "code_verifier": "lp9IcFXxuN0Fzpkti_4TWoKxBLLtB7WMz_r4FeWHZacoyPvZKmyWp5vRFvMD5znShx5OUdQklpP-KRm7Pgur6w",
+  "redirect_uri": "http://localhost:5173/github-pr-dashboard"
+}
