@@ -44,7 +44,7 @@ interface GitHubTokenResponse {
 }
 
 const app = express();
-app.disable('x-powered-by');
+app.disable("x-powered-by");
 const PORT = process.env.PORT || 3001;
 const CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 const CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
@@ -114,6 +114,30 @@ app.post(TOKEN_ENDPOINT, async (req, res) => {
       status_code: 400,
     });
     return res.status(400).json({ error: "Missing code parameter" });
+  }
+
+  if (redirect_uri) {
+    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
+    try {
+      const redirectUriOrigin = new URL(redirect_uri).origin;
+      if (!allowedOrigins.includes(redirectUriOrigin)) {
+        req.log.warn({ redirect_uri }, "Invalid redirect_uri received.");
+        httpRequestCounter.inc({
+          method: req.method,
+          route: TOKEN_ENDPOINT,
+          status_code: 400,
+        });
+        return res.status(400).json({ error: "Invalid redirect_uri" });
+      }
+    } catch (e) {
+      req.log.warn({ redirect_uri }, "Invalid redirect_uri format received.");
+      httpRequestCounter.inc({
+        method: req.method,
+        route: TOKEN_ENDPOINT,
+        status_code: 400,
+      });
+      return res.status(400).json({ error: "Invalid redirect_uri format" });
+    }
   }
 
   try {
