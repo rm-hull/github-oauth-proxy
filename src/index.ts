@@ -167,7 +167,7 @@ app.post("/v1/github/token", async (req, res) => {
           client_secret: CLIENT_SECRET,
           code,
           code_verifier,
-          redirect_uri: redirect_uri,
+          redirect_uri,
         }),
       }
     );
