@@ -1,5 +1,5 @@
-// src/index.ts
 import express from "express";
+import client from "prom-client";
 import cors from "cors";
 import dotenv from "dotenv";
 import pino from "pino";
@@ -35,6 +35,17 @@ interface GitHubTokenResponse {
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Prometheus metrics setup
+const collectDefaultMetrics = client.collectDefaultMetrics;
+collectDefaultMetrics();
+
+// Custom counter example (can add more as needed)
+const httpRequestCounter = new client.Counter({
+  name: "http_requests_total",
+  help: "Total number of HTTP requests",
+  labelNames: ["method", "route", "status_code"],
+});
+
 // Configure CORS - adjust origins based on your needs
 app.use(
   cors({
@@ -45,8 +56,19 @@ app.use(
 
 app.use(express.json());
 
+// Metrics endpoint
+app.get("/metrics", async (req, res) => {
+  res.set("Content-Type", client.register.contentType);
+  res.end(await client.register.metrics());
+});
+
 // Health check endpoint
 app.get("/health", (req, res) => {
+  httpRequestCounter.inc({
+    method: req.method,
+    route: "/health",
+    status_code: 200,
+  });
   res.json({ status: "ok" });
 });
 
@@ -55,6 +77,11 @@ app.post("/v1/github/token", async (req, res) => {
   const { code, code_verifier } = req.body;
 
   if (!code) {
+    httpRequestCounter.inc({
+      method: req.method,
+      route: "/v1/github/token",
+      status_code: 400,
+    });
     return res.status(400).json({ error: "Missing code parameter" });
   }
 
@@ -67,6 +94,11 @@ app.post("/v1/github/token", async (req, res) => {
       { clientId: !!clientId, clientSecret: !!clientSecret },
       "Missing GitHub OAuth credentials"
     );
+    httpRequestCounter.inc({
+      method: req.method,
+      route: "/v1/github/token",
+      status_code: 500,
+    });
     return res.status(500).json({ error: "Server configuration error" });
   }
 
@@ -105,6 +137,11 @@ app.post("/v1/github/token", async (req, res) => {
         },
         "GitHub OAuth error"
       );
+      httpRequestCounter.inc({
+        method: req.method,
+        route: "/v1/github/token",
+        status_code: 400,
+      });
       return res.status(400).json({
         error: data.error,
         error_description: data.error_description,
@@ -115,9 +152,19 @@ app.post("/v1/github/token", async (req, res) => {
       { hasAccessToken: !!data.access_token, scope: data.scope },
       "Token exchange successful"
     );
+    httpRequestCounter.inc({
+      method: req.method,
+      route: "/v1/github/token",
+      status_code: 200,
+    });
     res.json(data);
   } catch (error) {
     logger.error({ error }, "Error exchanging code for token");
+    httpRequestCounter.inc({
+      method: req.method,
+      route: "/v1/github/token",
+      status_code: 500,
+    });
     res.status(500).json({ error: "Internal server error" });
   }
 });
