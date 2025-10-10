@@ -31,8 +31,17 @@ jobs:
         run: yarn lint
         continue-on-error: true
 
-      # - name: Run tests
-      #   run: yarn test
+      - name: Tests
+        run: yarn test:coverage
+        env:
+          GITHUB_CLIENT_ID: test-client-id
+          GITHUB_CLIENT_SECRET: test-client-secret
+          ALLOWED_ORIGINS: http://localhost:3000
+          DEFAULT_REDIRECT_URI: http://localhost:3000/callback
+
+      - name: Coveralls
+        uses: coverallsapp/github-action@v2
+        continue-on-error: true
 
       - name: Build project
         run: yarn build
