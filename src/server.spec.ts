@@ -1,3 +1,4 @@
+import client from "prom-client";
 import request from "supertest";
 import { createServer } from "./server.js";
 
@@ -5,6 +6,7 @@ describe("Server", () => {
   let app: ReturnType<typeof createServer>;
 
   beforeAll(() => {
+    client.register.clear();
     app = createServer();
   });
 
