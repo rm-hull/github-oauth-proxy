@@ -18,11 +18,12 @@ router.get("/health", (req, res) => {
 
 // GitHub OAuth token exchange endpoint
 router.post("/v1/github/token", async (req, res) => {
-  const { code, code_verifier, redirect_uri } = req.body;
+  const { client_id, code, code_verifier, redirect_uri } = req.body;
 
-  const requiredParams = ["code", "code_verifier", "redirect_uri"];
+  const requiredParams = ["client_id", "code", "code_verifier", "redirect_uri"];
   for (const param of requiredParams) {
-    if (!req.body[param]) {
+    if (!(param in req.body)) {
+      req.log.warn({ param }, `Missing parameter`);
       return res.status(400).json({ error: `Missing ${param} parameter` });
     }
   }
@@ -39,10 +40,17 @@ router.post("/v1/github/token", async (req, res) => {
     return res.status(400).json({ error: "Invalid redirect_uri format" });
   }
 
+  const secret = config.github[client_id];
+  if (!secret) {
+    req.log.warn({ client_id }, "Unknown client_id received.");
+    return res.status(400).json({ error: "Invalid client_id" });
+  }
+
   try {
     req.log.info(
       {
-        clientId: config.github.clientId,
+        app: secret.name,
+        clientId: client_id,
         redirectUri: redirect_uri,
         hasCode: !!code,
         hasVerifier: !!code_verifier,
@@ -58,8 +66,8 @@ router.post("/v1/github/token", async (req, res) => {
         Accept: "application/json",
       },
       body: JSON.stringify({
-        client_id: config.github.clientId,
-        client_secret: config.github.clientSecret,
+        client_id: secret.clientId,
+        client_secret: secret.clientSecret,
         code,
         code_verifier,
         redirect_uri,
