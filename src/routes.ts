@@ -22,7 +22,7 @@ router.post("/v1/github/token", async (req, res) => {
 
   const requiredParams = ["client_id", "code", "code_verifier", "redirect_uri"];
   for (const param of requiredParams) {
-    if (!(param in req.body)) {
+    if (!req.body[param]) {
       req.log.warn({ param }, `Missing parameter`);
       return res.status(400).json({ error: `Missing ${param} parameter` });
     }
