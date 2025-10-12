@@ -13,6 +13,9 @@ function extractSecrets(env: NodeJS.ProcessEnv): Record<string, Secret> {
     if (key.startsWith(prefix) && !!value) {
       const name = key.slice(prefix.length);
       const [clientId, clientSecret] = value.split(/\|/);
+      if (!clientId || !clientSecret) {
+        throw new Error("Invalid secret format for " + key + ". Expected 'clientId|clientSecret'.");
+      }
       result[clientId] = { name, clientId, clientSecret };
     }
   }
