@@ -34,8 +34,7 @@ jobs:
       - name: Tests
         run: yarn test:coverage
         env:
-          GITHUB_CLIENT_ID: test-client-id
-          GITHUB_CLIENT_SECRET: test-client-secret
+          GITHUB_OAUTH_SECRET_TEST: test-client-id|test-client-secret
           ALLOWED_ORIGINS: http://localhost:3000
           DEFAULT_REDIRECT_URI: http://localhost:3000/callback
 

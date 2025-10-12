@@ -46,13 +46,12 @@ docker run -p 3001:3001 --env-file .env github-oauth-proxy
 
 The following environment variables are used to configure the application:
 
-| Variable               | Description                                     | Default                 |
-| ---------------------- | ----------------------------------------------- | ----------------------- |
-| `PORT`                 | The port to run the application on.             | `3001`                  |
-| `LOG_LEVEL`            | The log level to use.                           | `info`                  |
-| `GITHUB_CLIENT_ID`     | The GitHub OAuth client ID.                     |                         |
-| `GITHUB_CLIENT_SECRET` | The GitHub OAuth client secret.                 |                         |
-| `ALLOWED_ORIGINS`      | A comma-separated list of allowed CORS origins. | `http://localhost:5173` |
+| Variable                     | Description                                                                                                                                    | Default                 |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| `PORT`                       | The port to run the application on.                                                                                                            | `3001`                  |
+| `LOG_LEVEL`                  | The log level to use.                                                                                                                          | `info`                  |
+| `GITHUB_OAUTH_SECRET_<NAME>` | A GitHub OAuth secret, where `<NAME>` is a unique identifier for the client. The value should be in the format `<client_id>\|<client_secret>`. |                         |
+| `ALLOWED_ORIGINS`            | A comma-separated list of allowed CORS origins.                                                                                                | `http://localhost:5173` |
 
 ## Logging
 

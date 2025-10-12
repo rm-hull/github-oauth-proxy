@@ -13,6 +13,7 @@ POST http://localhost:3001/v1/github/token
 Content-Type: application/json
 
 {
+  "client_id": "Ov23liNif9B2EJJ0ftpt",
   "code": "1b3db016a3bb8a317ffe",
   "code_verifier": "lp9IcFXxuN0Fzpkti_4TWoKxBLLtB7WMz_r4FeWHZacoyPvZKmyWp5vRFvMD5znShx5OUdQklpP-KRm7Pgur6w",
   "redirect_uri": "http://localhost:5173/github-pr-dashboard"
