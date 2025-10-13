@@ -13,10 +13,13 @@ POST http://localhost:3001/v1/auth/github
 Content-Type: application/json
 
 {
+  "client_id": "<github-client-id>",
   "code": "<github-oauth-code>",
-  "code_verifier": "<github-pkce-verifier>"
+  "code_verifier": "<github-pkce-verifier>",
+  "redirect_uri": "<github-redirect-uri>"   
 }
 ```
+The redirect URI must match the value specified in the GitHub application. 
 
 ## Local setup
 
