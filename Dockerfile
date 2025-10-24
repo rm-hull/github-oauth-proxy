@@ -1,8 +1,5 @@
 FROM node:25-alpine AS base
 
-# Enable Corepack for Yarn Berry
-RUN corepack enable
-
 WORKDIR /app
 
 # Copy package files
@@ -21,7 +18,6 @@ RUN yarn build
 # Production stage
 FROM node:25-alpine AS production
 
-RUN corepack enable
 ENV NODE_ENV=production
 
 WORKDIR /app
