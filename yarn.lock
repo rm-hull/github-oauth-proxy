@@ -3972,7 +3972,7 @@ __metadata:
     prettier: "npm:^3.7.4"
     prom-client: "npm:^15.1.3"
     request-ip: "npm:^3.3.0"
-    supertest: "npm:^7.2.1"
+    supertest: "npm:^7.2.2"
     ts-jest: "npm:^29.4.6"
     ts-node: "npm:^10.9.2"
     tsup: "npm:^8.5.1"
@@ -7044,14 +7044,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"supertest@npm:^7.2.1":
-  version: 7.2.1
-  resolution: "supertest@npm:7.2.1"
+"supertest@npm:^7.2.2":
+  version: 7.2.2
+  resolution: "supertest@npm:7.2.2"
   dependencies:
     cookie-signature: "npm:^1.2.2"
     methods: "npm:^1.1.2"
     superagent: "npm:^10.3.0"
-  checksum: 10c0/37399043b0e8285150fb2c5533c97a37afeced5b98e414b6dbf028197eb89b7df958fe019d2f527369505ce927df4419a51a604311d4d7aaf57d2a3b7e76619d
+  checksum: 10c0/9de987aefbec50c5dfac79ff699bbc23c89cdbfe59ede165309fb3cf00c306117b30c5059fe6f7085c7525aab315ac27c77a1dc6056b993c7e0bb154a56c2b78
   languageName: node
   linkType: hard
 
