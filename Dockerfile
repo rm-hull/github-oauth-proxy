@@ -44,4 +44,4 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 RUN chown -R appuser:appgroup /app
 USER appuser
 
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/index.mjs"]
