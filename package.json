@@ -46,7 +46,7 @@
     "ts-node": "^10.9.2",
     "tsdown": "^0.21.9",
     "tsx": "^4.21.0",
-    "typescript": "^6.0.2",
+    "typescript": "^6.0.3",
     "typescript-eslint": "^8.58.2"
   },
   "packageManager": "yarn@4.13.0"
