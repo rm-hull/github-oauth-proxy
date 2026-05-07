@@ -1,6 +1,9 @@
-FROM node:25-alpine AS base
+FROM node:26-alpine AS base
 
 WORKDIR /app
+
+# Install yarn
+RUN apk add --no-cache yarn
 
 # Copy package files
 COPY package.json yarn.lock .yarnrc.yml ./
@@ -15,8 +18,12 @@ COPY . .
 # Build TypeScript
 RUN yarn build
 
+# Prune to production dependencies
+FROM base AS pruned
+RUN yarn workspaces focus --production
+
 # Production stage
-FROM node:25-alpine AS production
+FROM node:26-alpine AS production
 
 ENV NODE_ENV=production
 
@@ -26,8 +33,8 @@ WORKDIR /app
 COPY package.json yarn.lock .yarnrc.yml ./
 COPY .yarn ./.yarn
 
-# Install production dependencies only
-RUN yarn workspaces focus --production
+# Copy pruned node_modules from pruned stage
+COPY --from=pruned /app/node_modules ./node_modules
 
 # Copy built application
 COPY --from=base /app/dist ./dist
