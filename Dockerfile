@@ -1,4 +1,4 @@
-FROM node:25-alpine AS base
+FROM node:26-alpine AS base
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ COPY . .
 RUN yarn build
 
 # Production stage
-FROM node:25-alpine AS production
+FROM node:26-alpine AS production
 
 ENV NODE_ENV=production
 
