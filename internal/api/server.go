@@ -41,7 +41,7 @@ func NewServer(cfg *config.Config, handlers *Handlers) *gin.Engine {
 	r.Use(p.Instrument())
 
 	// Healthcheck
-	healthcheck.New(r, hc_config.DefaultConfig(), []checks.Check{})
+	_ = healthcheck.New(r, hc_config.DefaultConfig(), []checks.Check{})
 
 	// Routes
 	v1 := r.Group("/v1")

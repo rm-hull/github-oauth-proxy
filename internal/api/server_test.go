@@ -95,7 +95,8 @@ func TestServer(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, resp.Code)
 		var tokenResp github.TokenResponse
-		json.Unmarshal(resp.Body.Bytes(), &tokenResp)
+		err := json.Unmarshal(resp.Body.Bytes(), &tokenResp)
+		assert.NoError(t, err)
 		assert.Equal(t, "test_access_token", tokenResp.AccessToken)
 	})
 

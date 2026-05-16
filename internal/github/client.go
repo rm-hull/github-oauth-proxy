@@ -61,7 +61,7 @@ func (c *client) ExchangeToken(ctx context.Context, req TokenRequest) (*TokenRes
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to execute http request")
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
