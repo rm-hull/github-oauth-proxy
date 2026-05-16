@@ -1,6 +1,7 @@
 package config
 
 import (
+	"slices"
 	"os"
 	"strconv"
 	"strings"
@@ -77,10 +78,5 @@ func Load() (*Config, error) {
 }
 
 func (c *Config) IsOriginAllowed(origin string) bool {
-	for _, o := range c.AllowedOrigins {
-		if o == origin {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(c.AllowedOrigins, origin)
 }

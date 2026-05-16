@@ -51,4 +51,13 @@ func TestLoadConfig(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "invalid secret format")
 	})
+
+	t.Run("IsOriginAllowed", func(t *testing.T) {
+		cfg := &Config{
+			AllowedOrigins: []string{"http://localhost:3000", "https://example.com"},
+		}
+		assert.True(t, cfg.IsOriginAllowed("http://localhost:3000"))
+		assert.True(t, cfg.IsOriginAllowed("https://example.com"))
+		assert.False(t, cfg.IsOriginAllowed("http://malicious.com"))
+	})
 }
