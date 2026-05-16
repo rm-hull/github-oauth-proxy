@@ -1,8 +1,8 @@
 package config
 
 import (
-	"slices"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -37,6 +37,9 @@ func Load() (*Config, error) {
 	}
 
 	allowedOrigins := strings.Split(os.Getenv("ALLOWED_ORIGINS"), ",")
+	for i := range allowedOrigins {
+		allowedOrigins[i] = strings.TrimSpace(allowedOrigins[i])
+	}
 	if len(allowedOrigins) == 1 && allowedOrigins[0] == "" {
 		allowedOrigins = []string{"http://localhost:5173"}
 	}
