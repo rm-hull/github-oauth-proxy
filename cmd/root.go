@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"os"
+	"time"
 
 	"github.com/rm-hull/github-oauth-proxy/internal/api"
 	"github.com/rm-hull/github-oauth-proxy/internal/config"
@@ -53,7 +54,7 @@ func Execute() {
 }
 
 func setupLogger(level string) {
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	zerolog.TimeFieldFormat = time.RFC3339
 	l, err := zerolog.ParseLevel(level)
 	if err != nil {
 		l = zerolog.InfoLevel

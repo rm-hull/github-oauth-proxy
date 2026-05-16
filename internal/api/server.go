@@ -8,6 +8,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/rm-hull/github-oauth-proxy/internal/config"
+	"github.com/rm-hull/github-oauth-proxy/internal/middleware"
 	healthcheck "github.com/tavsec/gin-healthcheck"
 	"github.com/tavsec/gin-healthcheck/checks"
 	hc_config "github.com/tavsec/gin-healthcheck/config"
@@ -20,7 +21,7 @@ func NewServer(cfg *config.Config, handlers *Handlers) *gin.Engine {
 
 	r := gin.New()
 	r.Use(gin.Recovery())
-	r.Use(gin.Logger())
+	r.Use(middleware.Logger("/healthz", "/metrics"))
 
 	// CORS
 	r.Use(cors.New(cors.Config{
