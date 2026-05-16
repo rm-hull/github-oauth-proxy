@@ -63,7 +63,7 @@ func (c *client) ExchangeToken(ctx context.Context, req TokenRequest) (*TokenRes
 	}
 	defer func() { _ = resp.Body.Close() }()
 
-	respBody, err := io.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20)) // Limit to 1MB
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read response body")
 	}
