@@ -1,54 +1,41 @@
-FROM node:26-alpine AS base
+FROM golang:1.26-alpine AS build
+
+RUN apk update && \
+    apk add --no-cache ca-certificates tzdata git build-base && \
+    update-ca-certificates
+
+RUN adduser -D -g '' appuser
 
 WORKDIR /app
 
-# Install yarn
-RUN apk add --no-cache yarn
+COPY go.mod go.sum ./
+RUN go mod download
 
-# Copy package files
-COPY package.json yarn.lock .yarnrc.yml ./
-COPY .yarn ./.yarn
-
-# Install dependencies
-RUN yarn install --immutable
-
-# Copy source code
 COPY . .
 
-# Build TypeScript
-RUN yarn build
+ENV CGO_ENABLED=0
+ENV GOOS=linux
 
-# Prune to production dependencies
-FROM base AS pruned
-RUN yarn workspaces focus --production
+RUN go build -ldflags="-w -s" -o github-oauth-proxy .
 
-# Production stage
-FROM node:26-alpine AS production
+FROM alpine:latest AS runtime
+ENV GIN_MODE=release
+ENV TZ=UTC
 
-ENV NODE_ENV=production
+RUN apk --no-cache add curl ca-certificates tzdata && \
+    update-ca-certificates
 
+RUN adduser -D -g '' appuser
 WORKDIR /app
 
-# Copy package files
-COPY package.json yarn.lock .yarnrc.yml ./
-COPY .yarn ./.yarn
+COPY --from=build /app/github-oauth-proxy .
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=build /usr/share/zoneinfo /usr/share/zoneinfo
 
-# Copy pruned node_modules from pruned stage
-COPY --from=pruned /app/node_modules ./node_modules
-
-# Copy built application
-COPY --from=base /app/dist ./dist
-
-EXPOSE 3001
-
-# Health check - checks every 30s with 3s timeout, 3 retries before unhealthy
-COPY healthcheck.cjs ./
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node /app/healthcheck.cjs
-
-# Create non-root user and set ownership of /app
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-RUN chown -R appuser:appgroup /app
 USER appuser
+EXPOSE 8080/tcp
 
-CMD ["node", "dist/index.mjs"]
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/healthz || exit 1
+
+ENTRYPOINT ["./github-oauth-proxy"]

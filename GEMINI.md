@@ -2,17 +2,15 @@
 
 ## Project Overview
 
-This project is a lightweight Node.js service that acts as a secure intermediary between a browser-based single page application and GitHub's OAuth authentication. It is designed specifically to support OAuth flows using PKCE (Proof Key for Code Exchange), making it ideal for SPAs and mobile apps. The proxy simplifies OAuth logic, handles token exchanges, and provides endpoints for authenticating users via GitHub, so you can integrate GitHub login without exposing secrets or handling complex OAuth and PKCE logic directly.
+This project is a lightweight Go service that acts as a secure intermediary between a browser-based single page application and GitHub's OAuth authentication. It is designed specifically to support OAuth flows using PKCE (Proof Key for Code Exchange), making it ideal for SPAs and mobile apps. The proxy simplifies OAuth logic, handles token exchanges, and provides endpoints for authenticating users via GitHub, so you can integrate GitHub login without exposing secrets or handling complex OAuth and PKCE logic directly.
 
-The application is built with TypeScript and uses Express.js for the web server. It also includes `pino` for logging and `prom-client` for exposing Prometheus metrics.
+The application is built with Go and uses the Gin framework. It follows the architectural patterns found in https://github.com/map-services/fuel-prices-api.
 
 ## Building and Running
 
-### Installation
+### Prerequisites
 
-```bash
-yarn install
-```
+- Go 1.26 or later
 
 ### Configuration
 
@@ -24,19 +22,19 @@ cp .env.example .env
 
 ### Development
 
-To run the application in development mode with hot-reloading:
+To run the application:
 
 ```bash
-yarn dev
+go run main.go
 ```
 
 ### Production
 
-To build and run the application in production mode:
+To build and run the application:
 
 ```bash
-yarn build
-yarn start
+go build -o github-oauth-proxy .
+./github-oauth-proxy
 ```
 
 ### Docker
@@ -45,23 +43,29 @@ To build and run the application using Docker:
 
 ```bash
 docker build -t github-oauth-proxy .
-docker run -p 3001:3001 --env-file .env github-oauth-proxy
+docker run -p 8080:8080 --env-file .env github-oauth-proxy
 ```
 
-### Type Checking
+### Testing
 
-To check for TypeScript type errors:
+To run the tests:
 
 ```bash
-yarn type-check
+go test -v ./...
+```
+
+To check linting:
+
+```bash
+golangci-lint-v2 run ./...
 ```
 
 ## Development Conventions
 
-*   **Language:** TypeScript
-*   **Framework:** Express.js
-*   **Package Manager:** Yarn
-*   **Logging:** Pino is used for logging. In development, `pino-pretty` is used for human-readable logs.
-*   **Metrics:** Prometheus metrics are exposed on the `/metrics` endpoint using `prom-client`.
-*   **Code Style:** The project uses Prettier for code formatting (inferred from the presence of `.prettierrc`).
-*   **Linting:** ESLint is used for linting (inferred from the presence of `.eslintrc.js`).
+*   **Language:** Go
+*   **Framework:** Gin Gonic
+*   **CLI:** Cobra
+*   **Logging:** log/slog
+*   **Metrics:** Prometheus (via ginprom)
+*   **Health Checks:** gin-healthcheck
+*   **Internal logic:** All core logic resides in the `internal/` directory.

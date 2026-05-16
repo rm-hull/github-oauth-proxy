@@ -1,9 +1,30 @@
-node_modules
-dist
+# Build artifacts
+bin/
+dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go modules
+vendor/
+
+# Environment variables
 .env
-.env.local
+.env.*
+
+# Logs
 *.log
+
+# OS files
 .DS_Store
+
+# Version control
 .git
 .gitignore
+
+# Documentation
 README.md
+GEMINI.md
+LICENSE.md
