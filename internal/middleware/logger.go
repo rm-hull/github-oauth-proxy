@@ -16,12 +16,12 @@ func Logger(excludedPaths ...string) gin.HandlerFunc {
 
 		c.Next()
 
-		if raw != "" {
-			path = path + "?" + raw
+		if slices.Contains(excludedPaths, c.Request.URL.Path) {
+			return
 		}
 
-		if slices.Contains(excludedPaths, path) {
-			return
+		if raw != "" {
+			path = path + "?" + raw
 		}
 
 		end := time.Now()
