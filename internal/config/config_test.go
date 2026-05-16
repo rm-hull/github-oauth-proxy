@@ -9,10 +9,10 @@ import (
 
 func TestLoadConfig(t *testing.T) {
 	t.Run("Success with valid config", func(t *testing.T) {
-		os.Setenv("PORT", "8080")
-		os.Setenv("LOG_LEVEL", "debug")
-		os.Setenv("ALLOWED_ORIGINS", "http://localhost:3000")
-		os.Setenv("GITHUB_OAUTH_SECRET_APP1", "id1|secret1")
+		_ = os.Setenv("PORT", "8080")
+		_ = os.Setenv("LOG_LEVEL", "debug")
+		_ = os.Setenv("ALLOWED_ORIGINS", "http://localhost:3000")
+		_ = os.Setenv("GITHUB_OAUTH_SECRET_APP1", "id1|secret1")
 		defer os.Clearenv()
 
 		cfg, err := Load()
@@ -26,8 +26,8 @@ func TestLoadConfig(t *testing.T) {
 
 	t.Run("Success with multiple secrets", func(t *testing.T) {
 		os.Clearenv()
-		os.Setenv("GITHUB_OAUTH_SECRET_APP1", "id1|secret1")
-		os.Setenv("GITHUB_OAUTH_SECRET_APP2", "id2|secret2")
+		_ = os.Setenv("GITHUB_OAUTH_SECRET_APP1", "id1|secret1")
+		_ = os.Setenv("GITHUB_OAUTH_SECRET_APP2", "id2|secret2")
 		defer os.Clearenv()
 
 		cfg, err := Load()
@@ -45,7 +45,7 @@ func TestLoadConfig(t *testing.T) {
 	})
 
 	t.Run("Invalid secret format", func(t *testing.T) {
-		os.Setenv("GITHUB_OAUTH_SECRET_APP1", "invalid_format")
+		_ = os.Setenv("GITHUB_OAUTH_SECRET_APP1", "invalid_format")
 		defer os.Clearenv()
 		_, err := Load()
 		assert.Error(t, err)

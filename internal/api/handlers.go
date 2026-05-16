@@ -1,13 +1,13 @@
 package api
 
 import (
+	"log/slog"
 	"net/http"
 	"net/url"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rm-hull/github-oauth-proxy/internal/config"
 	"github.com/rm-hull/github-oauth-proxy/internal/github"
-	"github.com/rs/zerolog/log"
 )
 
 type Handlers struct {
@@ -31,7 +31,7 @@ func (h *Handlers) ExchangeToken(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Warn().Err(err).Msg("Invalid request body")
+		slog.Warn("Invalid request body", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing or invalid parameters"})
 		return
 	}
@@ -39,14 +39,14 @@ func (h *Handlers) ExchangeToken(c *gin.Context) {
 	// Validate Redirect URI Origin
 	u, err := url.Parse(req.RedirectURI)
 	if err != nil {
-		log.Warn().Str("redirect_uri", req.RedirectURI).Msg("Invalid redirect_uri format")
+		slog.Warn("Invalid redirect_uri format", "redirect_uri", req.RedirectURI)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid redirect_uri format"})
 		return
 	}
 
 	origin := u.Scheme + "://" + u.Host
 	if !h.cfg.IsOriginAllowed(origin) {
-		log.Warn().Str("redirect_uri", req.RedirectURI).Str("origin", origin).Msg("Invalid redirect_uri origin")
+		slog.Warn("Invalid redirect_uri origin", "redirect_uri", req.RedirectURI, "origin", origin)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid redirect_uri"})
 		return
 	}
@@ -54,17 +54,17 @@ func (h *Handlers) ExchangeToken(c *gin.Context) {
 	// Lookup Secret
 	secret, ok := h.cfg.GithubSecrets[req.ClientID]
 	if !ok {
-		log.Warn().Str("client_id", req.ClientID).Msg("Unknown client_id received")
+		slog.Warn("Unknown client_id received", "client_id", req.ClientID)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid client_id"})
 		return
 	}
 
-	log.Info().
-		Str("app", secret.Name).
-		Str("clientId", req.ClientID).
-		Str("redirectUri", req.RedirectURI).
-		Str("ip", c.ClientIP()).
-		Msg("Exchanging code for token")
+	slog.Info("Exchanging code for token",
+		"app", secret.Name,
+		"clientId", req.ClientID,
+		"redirectUri", req.RedirectURI,
+		"ip", c.ClientIP(),
+	)
 
 	resp, err := h.githubClient.ExchangeToken(c.Request.Context(), github.TokenRequest{
 		ClientID:     secret.ClientID,
@@ -75,24 +75,21 @@ func (h *Handlers) ExchangeToken(c *gin.Context) {
 	})
 
 	if err != nil {
-		log.Error().Err(err).Msg("Error exchanging code for token")
+		slog.Error("Error exchanging code for token", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
 
 	if resp.Error != "" {
-		log.Error().
-			Str("error", resp.Error).
-			Str("description", resp.ErrorDescription).
-			Msg("GitHub OAuth error")
+		slog.Error("GitHub OAuth error", "error", resp.Error, "description", resp.ErrorDescription)
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	log.Info().
-		Str("scope", resp.Scope).
-		Str("tokenType", resp.TokenType).
-		Msg("Token exchange successful")
+	slog.Info("Token exchange successful",
+		"scope", resp.Scope,
+		"tokenType", resp.TokenType,
+	)
 
 	c.JSON(http.StatusOK, resp)
 }

@@ -1,14 +1,13 @@
 package cmd
 
 import (
+	"log/slog"
 	"os"
-	"time"
 
 	"github.com/rm-hull/github-oauth-proxy/internal/api"
 	"github.com/rm-hull/github-oauth-proxy/internal/config"
 	"github.com/rm-hull/github-oauth-proxy/internal/github"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
+	"github.com/rm-hull/godx"
 	"github.com/spf13/cobra"
 )
 
@@ -22,7 +21,8 @@ func Execute() {
 		Run: func(cmd *cobra.Command, args []string) {
 			cfg, err := config.Load()
 			if err != nil {
-				log.Fatal().Err(err).Msg("Failed to load config")
+				slog.Error("Failed to load config", "error", err)
+				os.Exit(1)
 			}
 
 			// Override with CLI flags if provided
@@ -33,14 +33,16 @@ func Execute() {
 				cfg.LogLevel = logLevel
 			}
 
-			setupLogger(cfg.LogLevel)
+			logger := setupLogger(cfg.LogLevel)
+			godx.Diagnostics(logger)
 
 			githubClient := github.NewClient()
 			handlers := api.NewHandlers(cfg, githubClient)
 
-			log.Info().Int("port", cfg.Port).Msg("Starting server")
+			slog.Info("Starting server", "port", cfg.Port)
 			if err := api.Run(cfg, handlers); err != nil {
-				log.Fatal().Err(err).Msg("Server failed")
+				slog.Error("Server failed", "error", err)
+				os.Exit(1)
 			}
 		},
 	}
@@ -53,15 +55,23 @@ func Execute() {
 	}
 }
 
-func setupLogger(level string) {
-	zerolog.TimeFieldFormat = time.RFC3339
-	l, err := zerolog.ParseLevel(level)
-	if err != nil {
-		l = zerolog.InfoLevel
+func setupLogger(level string) *slog.Logger {
+	var programLevel = new(slog.LevelVar)
+	switch level {
+	case "debug":
+		programLevel.Set(slog.LevelDebug)
+	case "warn":
+		programLevel.Set(slog.LevelWarn)
+	case "error":
+		programLevel.Set(slog.LevelError)
+	default:
+		programLevel.Set(slog.LevelInfo)
 	}
-	zerolog.SetGlobalLevel(l)
 
-	if l == zerolog.DebugLevel {
-		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	}
+	handler := slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
+		Level: programLevel,
+	})
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
+	return logger
 }

@@ -1,11 +1,11 @@
 package middleware
 
 import (
+	"log/slog"
 	"slices"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog"
 )
 
 func Logger(excludedPaths ...string) gin.HandlerFunc {
@@ -16,30 +16,25 @@ func Logger(excludedPaths ...string) gin.HandlerFunc {
 
 		c.Next()
 
-		if slices.Contains(excludedPaths, path) {
-			return
-		}
-
 		if raw != "" {
 			path = path + "?" + raw
+		}
+
+		if slices.Contains(excludedPaths, path) {
+			return
 		}
 
 		end := time.Now()
 		latency := end.Sub(start)
 
-		msg := "Request"
-		if len(c.Errors) > 0 {
-			msg = c.Errors.String()
-		}
-
-		zerolog.Ctx(c.Request.Context()).Info().
-			Str("method", c.Request.Method).
-			Str("path", path).
-			Int("status", c.Writer.Status()).
-			Int64("latency_ms", latency.Milliseconds()).
-			Str("ip", c.ClientIP()).
-			Str("user_agent", c.Request.UserAgent()).
-			Int("body_size", c.Writer.Size()).
-			Msg(msg)
+		slog.Info("Request",
+			"method", c.Request.Method,
+			"path", path,
+			"status", c.Writer.Status(),
+			"latency_ms", latency.Milliseconds(),
+			"ip", c.ClientIP(),
+			"user_agent", c.Request.UserAgent(),
+			"body_size", c.Writer.Size(),
+		)
 	}
 }

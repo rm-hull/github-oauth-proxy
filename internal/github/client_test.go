@@ -20,7 +20,7 @@ func TestExchangeToken(t *testing.T) {
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "POST", r.Method)
-			json.NewEncoder(w).Encode(expectedResp)
+			_ = json.NewEncoder(w).Encode(expectedResp)
 		}))
 		defer server.Close()
 
@@ -42,7 +42,7 @@ func TestExchangeToken(t *testing.T) {
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(errorResp)
+			_ = json.NewEncoder(w).Encode(errorResp)
 		}))
 		defer server.Close()
 
