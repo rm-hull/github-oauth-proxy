@@ -1,15 +1,15 @@
 ### Test POST /test endpoint
 
 ### Health Check
-GET http://localhost:3001/health
+GET http://localhost:8080/healthz
 Accept: application/json
 
 ### Metrics
-GET http://localhost:3001/metrics
+GET http://localhost:8080/metrics
 Accept: text/plain
 
 ### Token Exchange
-POST http://localhost:3001/v1/github/token
+POST http://localhost:8080/v1/github/token
 Content-Type: application/json
 
 {
