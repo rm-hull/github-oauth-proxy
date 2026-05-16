@@ -23,7 +23,6 @@ func NewServer(cfg *config.Config, handlers *Handlers) *gin.Engine {
 	r.Use(gin.Recovery())
 	r.Use(middleware.Logger("/healthz", "/metrics"))
 
-	// CORS
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     cfg.AllowedOrigins,
 		AllowMethods:     []string{"POST", "GET", "OPTIONS"},
@@ -33,7 +32,6 @@ func NewServer(cfg *config.Config, handlers *Handlers) *gin.Engine {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// Metrics
 	p := ginprom.New(
 		ginprom.Engine(r),
 		ginprom.Subsystem("gin"),
@@ -41,14 +39,10 @@ func NewServer(cfg *config.Config, handlers *Handlers) *gin.Engine {
 	)
 	r.Use(p.Instrument())
 
-	// Healthcheck
 	_ = healthcheck.New(r, hc_config.DefaultConfig(), []checks.Check{})
 
-	// Routes
 	v1 := r.Group("/v1")
-	{
-		v1.POST("/github/token", handlers.ExchangeToken)
-	}
+	v1.POST("/github/token", handlers.ExchangeToken)
 
 	return r
 }
