@@ -4,7 +4,7 @@
 
 This project is a lightweight Go service that acts as a secure intermediary between a browser-based single page application and GitHub's OAuth authentication. It is designed specifically to support OAuth flows using PKCE (Proof Key for Code Exchange), making it ideal for SPAs and mobile apps. The proxy simplifies OAuth logic, handles token exchanges, and provides endpoints for authenticating users via GitHub, so you can integrate GitHub login without exposing secrets or handling complex OAuth and PKCE logic directly.
 
-The application is built with Go and uses the Gin framework. It follows the architectural patterns found in `fuel-prices-api`.
+The application is built with Go and uses the Gin framework. It follows the architectural patterns found in https://github.com/map-services/fuel-prices-api.
 
 ## Building and Running
 
@@ -54,12 +54,18 @@ To run the tests:
 go test -v ./...
 ```
 
+To check linting:
+
+```bash
+golangci-lint-v2 run ./...
+```
+
 ## Development Conventions
 
 *   **Language:** Go
 *   **Framework:** Gin Gonic
 *   **CLI:** Cobra
-*   **Logging:** zerolog
+*   **Logging:** log/slog
 *   **Metrics:** Prometheus (via ginprom)
 *   **Health Checks:** gin-healthcheck
 *   **Internal logic:** All core logic resides in the `internal/` directory.
