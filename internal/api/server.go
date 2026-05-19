@@ -34,8 +34,8 @@ func NewServer(cfg *config.Config, handlers *Handlers) *gin.Engine {
 
 	p := ginprom.New(
 		ginprom.Engine(r),
-		ginprom.Subsystem("gin"),
 		ginprom.Path("/metrics"),
+		ginprom.Ignore("/healthz"),
 	)
 	r.Use(p.Instrument())
 
