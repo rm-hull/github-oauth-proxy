@@ -59,7 +59,7 @@ func TestServer(t *testing.T) {
 		server.ServeHTTP(resp, req)
 
 		assert.Equal(t, http.StatusOK, resp.Code)
-		assert.Contains(t, resp.Body.String(), "gin_requests_total")
+		assert.Contains(t, resp.Body.String(), "requests_total")
 	})
 
 	t.Run("POST /v1/github/token - Success", func(t *testing.T) {
