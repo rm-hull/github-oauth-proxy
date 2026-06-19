@@ -4,7 +4,7 @@ go 1.26.3
 
 require (
 	github.com/Depado/ginprom v1.8.3
-	github.com/cockroachdb/errors v1.13.0
+	github.com/cockroachdb/errors v1.14.0
 	github.com/gin-contrib/cors v1.7.7
 	github.com/gin-gonic/gin v1.12.0
 	github.com/joho/godotenv v1.5.1
