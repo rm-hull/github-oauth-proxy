@@ -1,6 +1,6 @@
 module github.com/rm-hull/github-oauth-proxy
 
-go 1.26.3
+go 1.27
 
 require (
 	github.com/Depado/ginprom v1.8.3

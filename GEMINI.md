@@ -10,7 +10,7 @@ The application is built with Go and uses the Gin framework. It follows the arch
 
 ### Prerequisites
 
-- Go 1.26 or later
+- Go 1.27 or later
 
 ### Configuration
 
