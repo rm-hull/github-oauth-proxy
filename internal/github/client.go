@@ -29,6 +29,7 @@ type TokenResponse struct {
 
 type Client interface {
 	ExchangeToken(ctx context.Context, req TokenRequest) (*TokenResponse, error)
+	RevokeToken(ctx context.Context, clientID, clientSecret, accessToken string) error
 }
 
 type client struct {
@@ -41,6 +42,30 @@ func NewClient() Client {
 		httpClient: &http.Client{Timeout: 10 * time.Second},
 		baseURL:    "https://github.com",
 	}
+}
+
+func (c *client) RevokeToken(ctx context.Context, clientID, clientSecret, accessToken string) error {
+	url := c.baseURL + "/login/oauth/access_tokens/" + accessToken
+	httpReq, err := http.NewRequestWithContext(ctx, "DELETE", url, nil)
+	if err != nil {
+		return errors.Wrap(err, "failed to create http request")
+	}
+
+	httpReq.SetBasicAuth(clientID, clientSecret)
+	httpReq.Header.Set("Accept", "application/vnd.github+json")
+	httpReq.Header.Set("User-Agent", "github-oauth-proxy (https://github.com/rm-hull/github-oauth-proxy)")
+
+	resp, err := c.httpClient.Do(httpReq)
+	if err != nil {
+		return errors.Wrap(err, "failed to execute http request")
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusOK {
+		return errors.Errorf("GitHub revoke API returned status: %s", resp.Status)
+	}
+
+	return nil
 }
 
 func (c *client) ExchangeToken(ctx context.Context, req TokenRequest) (*TokenResponse, error) {

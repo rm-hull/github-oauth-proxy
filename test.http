@@ -18,3 +18,12 @@ Content-Type: application/json
   "code_verifier": "lp9IcFXxuN0Fzpkti_4TWoKxBLLtB7WMz_r4FeWHZacoyPvZKmyWp5vRFvMD5znShx5OUdQklpP-KRm7Pgur6w",
   "redirect_uri": "http://localhost:5173/github-pr-dashboard"
 }
+
+### Token Revocation
+POST http://localhost:8080/v1/github/token/revoke
+Content-Type: application/json
+
+{
+  "client_id": "Ov23liNif9B2EJJ0ftpt",
+  "access_token": "ghp_your_access_token_here"
+}

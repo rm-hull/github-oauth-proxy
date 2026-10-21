@@ -25,7 +25,7 @@ func NewServer(cfg *config.Config, handlers *Handlers) *gin.Engine {
 
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     cfg.AllowedOrigins,
-		AllowMethods:     []string{"POST", "GET", "OPTIONS"},
+		AllowMethods:     []string{"POST", "GET", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
@@ -43,6 +43,7 @@ func NewServer(cfg *config.Config, handlers *Handlers) *gin.Engine {
 
 	v1 := r.Group("/v1")
 	v1.POST("/github/token", handlers.ExchangeToken)
+	v1.POST("/github/token/revoke", handlers.RevokeToken)
 
 	return r
 }

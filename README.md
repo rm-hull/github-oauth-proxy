@@ -22,6 +22,20 @@ Content-Type: application/json
 
 The redirect URI must match the value specified in the GitHub application and must be one of the `ALLOWED_ORIGINS`.
 
+### Revoke a token
+
+```http
+POST http://localhost:8080/v1/github/token/revoke
+Content-Type: application/json
+
+{
+  "client_id": "<github-client-id>",
+  "access_token": "<github-access-token>"
+}
+```
+
+Revokes the given access token on GitHub's side. Use this when a user logs out to ensure the token is no longer valid.
+
 ## Local setup
 
 ```console

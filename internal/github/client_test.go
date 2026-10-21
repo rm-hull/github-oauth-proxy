@@ -73,3 +73,52 @@ func TestExchangeToken(t *testing.T) {
 		assert.Nil(t, resp)
 	})
 }
+
+func TestRevokeToken(t *testing.T) {
+	t.Run("Success with 204 No Content", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "DELETE", r.Method)
+			assert.Contains(t, r.URL.Path, "/test_token")
+			w.WriteHeader(http.StatusNoContent)
+		}))
+		defer server.Close()
+
+		c := &client{
+			httpClient: server.Client(),
+			baseURL:    server.URL,
+		}
+
+		err := c.RevokeToken(context.Background(), "client_id", "client_secret", "test_token")
+		assert.NoError(t, err)
+	})
+
+	t.Run("Success with 200 OK", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer server.Close()
+
+		c := &client{
+			httpClient: server.Client(),
+			baseURL:    server.URL,
+		}
+
+		err := c.RevokeToken(context.Background(), "client_id", "client_secret", "test_token")
+		assert.NoError(t, err)
+	})
+
+	t.Run("Server Error", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+		}))
+		defer server.Close()
+
+		c := &client{
+			httpClient: server.Client(),
+			baseURL:    server.URL,
+		}
+
+		err := c.RevokeToken(context.Background(), "client_id", "client_secret", "test_token")
+		assert.Error(t, err)
+	})
+}

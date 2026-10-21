@@ -93,3 +93,43 @@ func (h *Handlers) ExchangeToken(c *gin.Context) {
 
 	c.JSON(http.StatusOK, resp)
 }
+
+func (h *Handlers) RevokeToken(c *gin.Context) {
+	var req struct {
+		ClientID    string `json:"client_id" binding:"required"`
+		AccessToken string `json:"access_token" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		slog.Warn("Invalid request body", "error", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing or invalid parameters"})
+		return
+	}
+
+	// Lookup Secret
+	secret, ok := h.cfg.GithubSecrets[req.ClientID]
+	if !ok {
+		slog.Warn("Unknown client_id received", "client_id", req.ClientID)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid client_id"})
+		return
+	}
+
+	slog.Info("Revoking access token",
+		"app", secret.Name,
+		"clientId", req.ClientID,
+		"ip", c.ClientIP(),
+	)
+
+	err := h.githubClient.RevokeToken(c.Request.Context(), secret.ClientID, secret.ClientSecret, req.AccessToken)
+	if err != nil {
+		slog.Error("Error revoking token", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to revoke token"})
+		return
+	}
+
+	slog.Info("Token revoked successfully",
+		"app", secret.Name,
+	)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Token revoked successfully"})
+}

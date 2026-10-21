@@ -1,8 +1,8 @@
-# GEMINI.md
+# AGENTS.md
 
 ## Project Overview
 
-This project is a lightweight Go service that acts as a secure intermediary between a browser-based single page application and GitHub's OAuth authentication. It is designed specifically to support OAuth flows using PKCE (Proof Key for Code Exchange), making it ideal for SPAs and mobile apps. The proxy simplifies OAuth logic, handles token exchanges, and provides endpoints for authenticating users via GitHub, so you can integrate GitHub login without exposing secrets or handling complex OAuth and PKCE logic directly.
+This project is a lightweight Go service that acts as a secure intermediary between a browser-based single page application and GitHub's OAuth authentication. It is designed specifically to support OAuth flows using PKCE (Proof Key for Code Exchange), making it ideal for SPAs and mobile apps. The proxy simplifies OAuth logic, handles token exchanges, and provides endpoints for authenticating and revoking tokens via GitHub, so you can integrate GitHub login without exposing secrets or handling complex OAuth and PKCE logic directly.
 
 The application is built with Go and uses the Gin framework. It follows the architectural patterns found in https://github.com/map-services/fuel-prices-api.
 
@@ -59,6 +59,15 @@ To check linting:
 ```bash
 golangci-lint-v2 run ./...
 ```
+
+## API Endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| POST | `/v1/github/token` | Exchange an OAuth code for an access token |
+| POST | `/v1/github/token/revoke` | Revoke an access token on GitHub's side |
+| GET | `/healthz` | Health check endpoint |
+| GET | `/metrics` | Prometheus metrics endpoint |
 
 ## Development Conventions
 

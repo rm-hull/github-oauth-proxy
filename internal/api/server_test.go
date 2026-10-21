@@ -26,6 +26,11 @@ func (m *MockGithubClient) ExchangeToken(ctx context.Context, req github.TokenRe
 	return args.Get(0).(*github.TokenResponse), args.Error(1)
 }
 
+func (m *MockGithubClient) RevokeToken(ctx context.Context, clientID, clientSecret, accessToken string) error {
+	args := m.Called(ctx, clientID, clientSecret, accessToken)
+	return args.Error(0)
+}
+
 func TestServer(t *testing.T) {
 	cfg := &config.Config{
 		Port:           8080,
@@ -98,6 +103,49 @@ func TestServer(t *testing.T) {
 		err := json.Unmarshal(resp.Body.Bytes(), &tokenResp)
 		assert.NoError(t, err)
 		assert.Equal(t, "test_access_token", tokenResp.AccessToken)
+	})
+
+	t.Run("POST /v1/github/token/revoke - Success", func(t *testing.T) {
+		revokeReq := struct {
+			ClientID    string `json:"client_id"`
+			AccessToken string `json:"access_token"`
+		}{
+			ClientID:    "test_client_id",
+			AccessToken: "test_access_token",
+		}
+
+		body, _ := json.Marshal(revokeReq)
+		req, _ := http.NewRequest("POST", "/v1/github/token/revoke", bytes.NewBuffer(body))
+		resp := httptest.NewRecorder()
+
+		mockClient.On("RevokeToken", mock.Anything, "test_client_id", "test_client_secret", "test_access_token").Return(nil)
+
+		server.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
+		var respBody map[string]string
+		err := json.Unmarshal(resp.Body.Bytes(), &respBody)
+		assert.NoError(t, err)
+		assert.Equal(t, "Token revoked successfully", respBody["message"])
+	})
+
+	t.Run("POST /v1/github/token/revoke - Invalid client_id", func(t *testing.T) {
+		revokeReq := struct {
+			ClientID    string `json:"client_id"`
+			AccessToken string `json:"access_token"`
+		}{
+			ClientID:    "unknown_client_id",
+			AccessToken: "test_access_token",
+		}
+
+		body, _ := json.Marshal(revokeReq)
+		req, _ := http.NewRequest("POST", "/v1/github/token/revoke", bytes.NewBuffer(body))
+		resp := httptest.NewRecorder()
+
+		server.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusBadRequest, resp.Code)
+		assert.Contains(t, resp.Body.String(), "Invalid client_id")
 	})
 
 	t.Run("POST /v1/github/token - Invalid Origin", func(t *testing.T) {
