@@ -26,7 +26,8 @@ func TestExchangeToken(t *testing.T) {
 
 		c := &client{
 			httpClient: server.Client(),
-			baseURL:    server.URL,
+			webURL:     server.URL,
+			apiURL:     server.URL,
 		}
 
 		resp, err := c.ExchangeToken(context.Background(), TokenRequest{})
@@ -48,7 +49,8 @@ func TestExchangeToken(t *testing.T) {
 
 		c := &client{
 			httpClient: server.Client(),
-			baseURL:    server.URL,
+			webURL:     server.URL,
+			apiURL:     server.URL,
 		}
 
 		resp, err := c.ExchangeToken(context.Background(), TokenRequest{})
@@ -65,7 +67,8 @@ func TestExchangeToken(t *testing.T) {
 
 		c := &client{
 			httpClient: server.Client(),
-			baseURL:    server.URL,
+			webURL:     server.URL,
+			apiURL:     server.URL,
 		}
 
 		resp, err := c.ExchangeToken(context.Background(), TokenRequest{})
@@ -85,7 +88,8 @@ func TestRevokeToken(t *testing.T) {
 
 		c := &client{
 			httpClient: server.Client(),
-			baseURL:    server.URL,
+			webURL:     server.URL,
+			apiURL:     server.URL,
 		}
 
 		err := c.RevokeToken(context.Background(), "client_id", "client_secret", "test_token")
@@ -100,7 +104,8 @@ func TestRevokeToken(t *testing.T) {
 
 		c := &client{
 			httpClient: server.Client(),
-			baseURL:    server.URL,
+			webURL:     server.URL,
+			apiURL:     server.URL,
 		}
 
 		err := c.RevokeToken(context.Background(), "client_id", "client_secret", "test_token")
@@ -115,7 +120,8 @@ func TestRevokeToken(t *testing.T) {
 
 		c := &client{
 			httpClient: server.Client(),
-			baseURL:    server.URL,
+			webURL:     server.URL,
+			apiURL:     server.URL,
 		}
 
 		err := c.RevokeToken(context.Background(), "client_id", "client_secret", "test_token")
