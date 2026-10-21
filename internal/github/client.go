@@ -45,24 +45,33 @@ func NewClient() Client {
 }
 
 func (c *client) RevokeToken(ctx context.Context, clientID, clientSecret, accessToken string) error {
-	url := c.baseURL + "/login/oauth/access_tokens/" + accessToken
-	httpReq, err := http.NewRequestWithContext(ctx, "DELETE", url, nil)
+	body, err := json.Marshal(map[string]string{"access_token": accessToken})
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal revoke request")
+	}
+
+	url := c.baseURL + "/applications/" + clientID + "/token"
+	httpReq, err := http.NewRequestWithContext(ctx, "DELETE", url, bytes.NewBuffer(body))
 	if err != nil {
 		return errors.Wrap(err, "failed to create http request")
 	}
 
 	httpReq.SetBasicAuth(clientID, clientSecret)
 	httpReq.Header.Set("Accept", "application/vnd.github+json")
+	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("User-Agent", "github-oauth-proxy (https://github.com/rm-hull/github-oauth-proxy)")
 
 	resp, err := c.httpClient.Do(httpReq)
 	if err != nil {
 		return errors.Wrap(err, "failed to execute http request")
 	}
-	defer func() { _ = resp.Body.Close() }()
+
+	// Read response body for error details
+	respBody, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<15))
+	_ = resp.Body.Close()
 
 	if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusOK {
-		return errors.Errorf("GitHub revoke API returned status: %s", resp.Status)
+		return errors.Errorf("GitHub revoke API returned status: %s, body: %s", resp.Status, string(respBody))
 	}
 
 	return nil

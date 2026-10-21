@@ -78,7 +78,7 @@ func TestRevokeToken(t *testing.T) {
 	t.Run("Success with 204 No Content", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, "DELETE", r.Method)
-			assert.Contains(t, r.URL.Path, "/test_token")
+			assert.Contains(t, r.URL.Path, "/applications/client_id/token")
 			w.WriteHeader(http.StatusNoContent)
 		}))
 		defer server.Close()
