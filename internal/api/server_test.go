@@ -47,7 +47,8 @@ func TestServer(t *testing.T) {
 
 	mockClient := new(MockGithubClient)
 	handlers := NewHandlers(cfg, mockClient)
-	server := NewServer(cfg, handlers)
+	server, err := NewServer(cfg, handlers)
+	assert.NoError(t, err, "Failed to create server")
 
 	t.Run("GET /healthz", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/healthz", nil)

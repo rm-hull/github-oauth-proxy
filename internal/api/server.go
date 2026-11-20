@@ -14,14 +14,17 @@ import (
 	hc_config "github.com/tavsec/gin-healthcheck/config"
 )
 
-func NewServer(cfg *config.Config, handlers *Handlers) *gin.Engine {
+func NewServer(cfg *config.Config, handlers *Handlers) (*gin.Engine, error) {
 	if cfg.LogLevel != "debug" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
 	r := gin.New()
 	if len(cfg.TrustedProxies) > 0 {
-		r.SetTrustedProxies(cfg.TrustedProxies)
+		err := r.SetTrustedProxies(cfg.TrustedProxies)
+		if err != nil {
+			return nil, fmt.Errorf("failed to set trusted proxies: %w", err)
+		}
 	}
 	r.Use(gin.Recovery())
 	r.Use(middleware.Logger("/healthz", "/metrics"))
@@ -49,10 +52,13 @@ func NewServer(cfg *config.Config, handlers *Handlers) *gin.Engine {
 	v1.POST("/github/token", handlers.ExchangeToken)
 	v1.POST("/github/token/revoke", handlers.RevokeToken)
 
-	return r
+	return r, nil
 }
 
 func Run(cfg *config.Config, handlers *Handlers) error {
-	r := NewServer(cfg, handlers)
+	r, err := NewServer(cfg, handlers)
+	if err != nil {
+		return err
+	}
 	return r.Run(fmt.Sprintf(":%d", cfg.Port))
 }
