@@ -3,6 +3,7 @@ package cmd
 import (
 	"log/slog"
 	"os"
+	"strings"
 
 	"github.com/rm-hull/github-oauth-proxy/internal/api"
 	"github.com/rm-hull/github-oauth-proxy/internal/config"
@@ -14,6 +15,7 @@ import (
 func Execute() {
 	var port int
 	var logLevel string
+	var trustedProxies string
 
 	rootCmd := &cobra.Command{
 		Use:   "github-oauth-proxy",
@@ -32,6 +34,12 @@ func Execute() {
 			if logLevel != "" {
 				cfg.LogLevel = logLevel
 			}
+			if trustedProxies != "" {
+				cfg.TrustedProxies = strings.Split(trustedProxies, ",")
+				for i := range cfg.TrustedProxies {
+					cfg.TrustedProxies[i] = strings.TrimSpace(cfg.TrustedProxies[i])
+				}
+			}
 
 			logger := setupLogger(cfg.LogLevel)
 			godx.Diagnostics(logger)
@@ -49,6 +57,7 @@ func Execute() {
 
 	rootCmd.Flags().IntVarP(&port, "port", "p", 0, "Port to run the server on")
 	rootCmd.Flags().StringVarP(&logLevel, "log-level", "l", "", "Log level (debug, info, warn, error)")
+	rootCmd.Flags().StringVarP(&trustedProxies, "trusted-proxies", "t", "", "Comma-separated list of trusted proxy IPs/CIDRs")
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)

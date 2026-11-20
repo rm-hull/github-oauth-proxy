@@ -20,6 +20,7 @@ type Config struct {
 	Port           int
 	LogLevel       string
 	AllowedOrigins []string
+	TrustedProxies []string
 	GithubSecrets  map[string]Secret
 }
 
@@ -72,10 +73,19 @@ func Load() (*Config, error) {
 		return nil, errors.New("missing GitHub OAuth credentials")
 	}
 
+	trustedProxies := strings.Split(os.Getenv("TRUSTED_PROXIES"), ",")
+	for i := range trustedProxies {
+		trustedProxies[i] = strings.TrimSpace(trustedProxies[i])
+	}
+	if len(trustedProxies) == 1 && trustedProxies[0] == "" {
+		trustedProxies = nil
+	}
+
 	return &Config{
 		Port:           port,
 		LogLevel:       logLevel,
 		AllowedOrigins: allowedOrigins,
+		TrustedProxies: trustedProxies,
 		GithubSecrets:  secrets,
 	}, nil
 }

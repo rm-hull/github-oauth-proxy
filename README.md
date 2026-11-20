@@ -69,6 +69,17 @@ The following environment variables are used to configure the application:
 | `LOG_LEVEL`                  | The log level to use (debug, info, warn, error).                                                                                               | `info`                  |
 | `GITHUB_OAUTH_SECRET_<NAME>` | A GitHub OAuth secret, where `<NAME>` is a unique identifier for the client. The value should be in the format `<client_id>\|<client_secret>`. |                         |
 | `ALLOWED_ORIGINS`            | A comma-separated list of allowed CORS origins.                                                                                                | `http://localhost:5173` |
+| `TRUSTED_PROXIES`            | A comma-separated list of trusted proxy IPs or CIDRs for accurate client IP detection behind a reverse proxy.                                  |                         |
+
+## CLI Flags
+
+The application supports the following command-line flags, which override the corresponding environment variables:
+
+| Flag                | Short | Description                                                                 | Default |
+| --------------------- | ----- | --------------------------------------------------------------------------- | ------- |
+| `--port`             | `-p`  | Port to run the server on.                                                  | `0` (uses config) |
+| `--log-level`        | `-l`  | Log level (debug, info, warn, error).                                       | `""` (uses config) |
+| `--trusted-proxies`  | `-t`  | Comma-separated list of trusted proxy IPs or CIDRs.                         | `""` (uses config) |
 
 ## Logging
 

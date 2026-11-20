@@ -20,6 +20,9 @@ func NewServer(cfg *config.Config, handlers *Handlers) *gin.Engine {
 	}
 
 	r := gin.New()
+	if len(cfg.TrustedProxies) > 0 {
+		r.SetTrustedProxies(cfg.TrustedProxies)
+	}
 	r.Use(gin.Recovery())
 	r.Use(middleware.Logger("/healthz", "/metrics"))
 	r.Use(callersMiddleware())
