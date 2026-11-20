@@ -72,11 +72,16 @@ The following environment variables are used to configure the application:
 
 ## Logging
 
-The application uses `zerolog` for structured logging. In `debug` mode, logs are pretty-printed to the console. In other modes, they are formatted as JSON.
+The application uses `log/slog` for structured logging. In `debug` mode, logs are pretty-printed to the console. In other modes, they are formatted as JSON.
 
 ## Metrics
 
-The application exposes Prometheus metrics on the `/metrics` endpoint.
+The application exposes Prometheus metrics on the `/metrics` endpoint. The following custom metrics are available:
+
+| Metric                              | Type    | Labels              | Description                                      |
+| ----------------------------------- | ------- | ------------------- | ------------------------------------------------ |
+| `oauth_proxy_callers_total`         | Counter | `ip`, `error`       | Total number of requests by caller IP address.   |
+| `oauth_proxy_method_calls_total`    | Counter | `client_id`, `method`, `error` | Total number of method calls. `method` is `exchange` or `revoke`. |
 
 ## Health Check
 

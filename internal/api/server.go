@@ -22,6 +22,7 @@ func NewServer(cfg *config.Config, handlers *Handlers) *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(middleware.Logger("/healthz", "/metrics"))
+	r.Use(callersMiddleware())
 
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     cfg.AllowedOrigins,

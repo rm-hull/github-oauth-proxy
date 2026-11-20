@@ -76,16 +76,19 @@ func (h *Handlers) ExchangeToken(c *gin.Context) {
 
 	if err != nil {
 		slog.Error("Error exchanging code for token", "error", err)
+		incrementMethodCall(req.ClientID, "exchange", true)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
 
 	if resp.Error != "" {
 		slog.Error("GitHub OAuth error", "error", resp.Error, "description", resp.ErrorDescription)
+		incrementMethodCall(req.ClientID, "exchange", true)
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
+	incrementMethodCall(req.ClientID, "exchange", false)
 	slog.Info("Token exchange successful",
 		"scope", resp.Scope,
 		"tokenType", resp.TokenType,
@@ -123,10 +126,12 @@ func (h *Handlers) RevokeToken(c *gin.Context) {
 	err := h.githubClient.RevokeToken(c.Request.Context(), secret.ClientID, secret.ClientSecret, req.AccessToken)
 	if err != nil {
 		slog.Error("Error revoking token", "error", err)
+		incrementMethodCall(req.ClientID, "revoke", true)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to revoke token"})
 		return
 	}
 
+	incrementMethodCall(req.ClientID, "revoke", false)
 	slog.Info("Token revoked successfully",
 		"app", secret.Name,
 	)
