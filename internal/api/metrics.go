@@ -27,8 +27,16 @@ var (
 	)
 )
 
-func callersMiddleware() gin.HandlerFunc {
+func callersMiddleware(ignorePaths ...string) gin.HandlerFunc {
+	ignored := make(map[string]struct{}, len(ignorePaths))
+	for _, p := range ignorePaths {
+		ignored[p] = struct{}{}
+	}
 	return func(c *gin.Context) {
+		if _, ok := ignored[c.Request.URL.Path]; ok {
+			c.Next()
+			return
+		}
 		ip := c.ClientIP()
 		c.Next()
 		errorLabel := fmt.Sprintf("%t", c.Writer.Status() >= http.StatusBadRequest)
