@@ -12,7 +12,7 @@ import (
 var (
 	callersTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "oauth_proxy_callers_total",
+			Name: "github_oauth_proxy_callers_total",
 			Help: "Total number of requests by caller IP address",
 		},
 		[]string{"ip", "error"},
@@ -20,7 +20,7 @@ var (
 
 	methodCallsTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "oauth_proxy_method_calls_total",
+			Name: "github_oauth_proxy_method_calls_total",
 			Help: "Total number of method calls by client_id and method",
 		},
 		[]string{"client_id", "method", "error"},
